@@ -31,7 +31,6 @@ func NewLogger(out io.Writer, prefix string, flag int) *Logger {
 }
 
 func (l *Logger) SetLevel(level uint) {
-	fmt.Printf("Setting level %d", level)
 	l.level = level
 }
 
