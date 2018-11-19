@@ -97,6 +97,38 @@ func (l *Logger) Debugln(v ...interface{}) {
 	l.writeLogln(DEBUG, v...)
 }
 
+func (l *Logger) Panicf(format string, v ...interface{}) {
+	// Output directly for all Panic*() calls, avoid level checking
+	msg := fmt.Sprintf(format, v...)
+	l.Output(3, fmt.Sprintf("PANIC %s", msg))
+	panic(msg)
+}
+
+func (l *Logger) Panic(v ...interface{}) {
+	msg := fmt.Sprint(v...)
+	l.Output(3, fmt.Sprintf("PANIC %s", msg))
+	panic(msg)
+}
+
+func (l *Logger) Panicln(v ...interface{}) {
+	msg := fmt.Sprintln(v...)
+	l.Output(3, fmt.Sprintf("PANIC %s", msg))
+	panic(msg)
+}
+
+func (l *Logger) Printf(format string, v ...interface{}) {
+	// Print*() logs using the current log level
+	l.writeLogf(l.level, format, v...)
+}
+
+func (l *Logger) Print(v ...interface{}) {
+	l.writeLogln(l.level, v...)
+}
+
+func (l *Logger) Println(v ...interface{}) {
+	l.writeLogln(l.level, v...)
+}
+
 func (l *Logger) writeLogf(level uint, format string, v ...interface{}) {
 	if l.level >= level {
 		q := []interface{}{levels[level]}
