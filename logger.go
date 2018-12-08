@@ -117,30 +117,32 @@ func (l *Logger) Panicln(v ...interface{}) {
 }
 
 func (l *Logger) Printf(format string, v ...interface{}) {
-	// Print*() logs using the current log level
-	l.writeLogf(l.level, format, v...)
+	// Print*() logs an "un-leveled" message
+	l.Output(3, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Print(v ...interface{}) {
-	l.writeLogln(l.level, v...)
+	l.Output(3, fmt.Sprintln(v...))
 }
 
 func (l *Logger) Println(v ...interface{}) {
-	l.writeLogln(l.level, v...)
+	l.Output(3, fmt.Sprintln(v...))
 }
 
-func (l *Logger) writeLogf(level uint, format string, v ...interface{}) {
+func (l *Logger) writeLogf(level uint, format string, v ...interface{}) error {
 	if l.level >= level {
 		q := []interface{}{levels[level]}
 		q = append(q, v...)
-		l.Output(3, fmt.Sprintf("%s "+format, q...))
+		return l.Output(3, fmt.Sprintf("%s "+format, q...))
 	}
+	return nil
 }
 
-func (l *Logger) writeLogln(level uint, v ...interface{}) {
+func (l *Logger) writeLogln(level uint, v ...interface{}) error {
 	if l.level >= level {
 		q := []interface{}{levels[level]}
 		q = append(q, v...)
-		l.Output(3, fmt.Sprintln(q...))
+		return l.Output(3, fmt.Sprintln(q...))
 	}
+	return nil
 }

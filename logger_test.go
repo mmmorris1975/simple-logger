@@ -388,21 +388,21 @@ func ExampleLogger_Print() {
 	l := exampleLogger(INFO)
 	l.Print("test")
 	// Output:
-	// INFO test
+	// test
 }
 
 func ExampleLogger_Printf() {
 	l := exampleLogger(WARN)
 	l.Printf("%s", "test")
 	// Output:
-	// WARN test
+	// test
 }
 
 func ExampleLogger_Println() {
 	l := exampleLogger(ERROR)
 	l.Println("test")
 	// Output:
-	// ERROR test
+	// test
 }
 
 func ExampleLogger_Prefix() {
