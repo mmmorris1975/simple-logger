@@ -263,6 +263,81 @@ func TestLogger_None(t *testing.T) {
 	})
 }
 
+func TestParseLevel(t *testing.T) {
+	t.Run("none", func(t *testing.T) {
+		l, err := ParseLevel("None")
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if l != NONE {
+			t.Errorf("level mismatch: EXPECTED %d, GOT %d", NONE, l)
+		}
+	})
+
+	t.Run("fatal", func(t *testing.T) {
+		l, err := ParseLevel("fatal")
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if l != FATAL {
+			t.Errorf("level mismatch: EXPECTED %d, GOT %d", FATAL, l)
+		}
+	})
+
+	t.Run("error", func(t *testing.T) {
+		l, err := ParseLevel("ERROR")
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if l != ERROR {
+			t.Errorf("level mismatch: EXPECTED %d, GOT %d", ERROR, l)
+		}
+	})
+
+	t.Run("warn", func(t *testing.T) {
+		l, err := ParseLevel("wArN")
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if l != WARN {
+			t.Errorf("level mismatch: EXPECTED %d, GOT %d", WARN, l)
+		}
+	})
+
+	t.Run("info", func(t *testing.T) {
+		l, err := ParseLevel("InFo")
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if l != INFO {
+			t.Errorf("level mismatch: EXPECTED %d, GOT %d", INFO, l)
+		}
+	})
+
+	t.Run("debug", func(t *testing.T) {
+		l, err := ParseLevel("DebuG")
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if l != DEBUG {
+			t.Errorf("level mismatch: EXPECTED %d, GOT %d", DEBUG, l)
+		}
+	})
+
+	t.Run("invalid", func(t *testing.T) {
+		if _, err := ParseLevel("bogus"); err == nil {
+			t.Error("did not receive expected error")
+			return
+		}
+	})
+}
+
 func ExampleLogger_Debug() {
 	l := exampleLogger(DEBUG)
 	l.Debug("test")

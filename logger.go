@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 )
 
 const (
@@ -28,6 +29,16 @@ var StdLogger = NewLogger(os.Stderr, "", log.LstdFlags)
 func NewLogger(out io.Writer, prefix string, flag int) *Logger {
 	l := &Logger{level: INFO, Logger: log.New(out, prefix, flag)}
 	return l
+}
+
+func ParseLevel(level string) (uint, error) {
+	for i, v := range levels {
+		if strings.EqualFold(v, level) {
+			return uint(i), nil
+		}
+	}
+
+	return 0, fmt.Errorf("invalid log level '%s'", level)
 }
 
 func (l *Logger) SetLevel(level uint) {
