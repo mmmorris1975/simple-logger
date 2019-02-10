@@ -140,6 +140,10 @@ func (l *Logger) Println(v ...interface{}) {
 	l.Output(3, fmt.Sprintln(v...))
 }
 
+func (l *Logger) Log(v ...interface{}) {
+	l.Println(v...)
+}
+
 func (l *Logger) writeLogf(level uint, format string, v ...interface{}) error {
 	if l.level >= level {
 		q := []interface{}{levels[level]}

@@ -480,6 +480,13 @@ func ExampleLogger_Println() {
 	// test
 }
 
+func ExampleLogger_Log() {
+	l := exampleLogger(ERROR)
+	l.Log("test")
+	// Output:
+	// test
+}
+
 func ExampleLogger_Prefix() {
 	l := exampleLogger(INFO)
 	l.SetPrefix("123")
