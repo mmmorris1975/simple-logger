@@ -140,8 +140,12 @@ func (l *Logger) Println(v ...interface{}) {
 	l.Output(3, fmt.Sprintln(v...))
 }
 
+func (l *Logger) Logf(format string, v ...interface{}) {
+	l.writeLogf(l.level, format, v...)
+}
+
 func (l *Logger) Log(v ...interface{}) {
-	l.Println(v...)
+	l.writeLogln(l.level, v...)
 }
 
 func (l *Logger) writeLogf(level uint, format string, v ...interface{}) error {

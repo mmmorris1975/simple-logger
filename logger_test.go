@@ -480,11 +480,18 @@ func ExampleLogger_Println() {
 	// test
 }
 
+func ExampleLogger_Logf() {
+	l := exampleLogger(WARN)
+	l.Logf("%s %d", "test", 1)
+	// Output:
+	// WARN test 1
+}
+
 func ExampleLogger_Log() {
 	l := exampleLogger(ERROR)
 	l.Log("test")
 	// Output:
-	// test
+	// ERROR test
 }
 
 func ExampleLogger_Prefix() {
