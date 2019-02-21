@@ -11,8 +11,8 @@ import (
 func TestNewLogger(t *testing.T) {
 	t.Run("std logger", func(t *testing.T) {
 		l := StdLogger
-		if l.level != INFO {
-			t.Error("level mismatch")
+		if l.Level != INFO {
+			t.Error("Level mismatch")
 		}
 
 		if l.Flags() != log.LstdFlags {
@@ -23,8 +23,8 @@ func TestNewLogger(t *testing.T) {
 	t.Run("debug logger", func(t *testing.T) {
 		l := NewLogger(os.Stderr, "", log.LstdFlags)
 		l.SetLevel(DEBUG)
-		if l.level != DEBUG {
-			t.Error("level mismatch")
+		if l.Level != DEBUG {
+			t.Error("Level mismatch")
 		}
 	})
 
@@ -271,7 +271,7 @@ func TestParseLevel(t *testing.T) {
 			return
 		}
 		if l != NONE {
-			t.Errorf("level mismatch: EXPECTED %d, GOT %d", NONE, l)
+			t.Errorf("Level mismatch: EXPECTED %d, GOT %d", NONE, l)
 		}
 	})
 
@@ -282,7 +282,7 @@ func TestParseLevel(t *testing.T) {
 			return
 		}
 		if l != FATAL {
-			t.Errorf("level mismatch: EXPECTED %d, GOT %d", FATAL, l)
+			t.Errorf("Level mismatch: EXPECTED %d, GOT %d", FATAL, l)
 		}
 	})
 
@@ -293,7 +293,7 @@ func TestParseLevel(t *testing.T) {
 			return
 		}
 		if l != ERROR {
-			t.Errorf("level mismatch: EXPECTED %d, GOT %d", ERROR, l)
+			t.Errorf("Level mismatch: EXPECTED %d, GOT %d", ERROR, l)
 		}
 	})
 
@@ -304,7 +304,7 @@ func TestParseLevel(t *testing.T) {
 			return
 		}
 		if l != WARN {
-			t.Errorf("level mismatch: EXPECTED %d, GOT %d", WARN, l)
+			t.Errorf("Level mismatch: EXPECTED %d, GOT %d", WARN, l)
 		}
 	})
 
@@ -315,7 +315,7 @@ func TestParseLevel(t *testing.T) {
 			return
 		}
 		if l != INFO {
-			t.Errorf("level mismatch: EXPECTED %d, GOT %d", INFO, l)
+			t.Errorf("Level mismatch: EXPECTED %d, GOT %d", INFO, l)
 		}
 	})
 
@@ -326,7 +326,7 @@ func TestParseLevel(t *testing.T) {
 			return
 		}
 		if l != DEBUG {
-			t.Errorf("level mismatch: EXPECTED %d, GOT %d", DEBUG, l)
+			t.Errorf("Level mismatch: EXPECTED %d, GOT %d", DEBUG, l)
 		}
 	})
 
@@ -423,7 +423,7 @@ func ExampleLogger_Errorln() {
 }
 
 func ExampleLogger_Panic() {
-	// Panic*() logs should output something even if level == NONE
+	// Panic*() logs should output something even if Level == NONE
 	defer func() {
 		if x := recover(); x != nil {
 			// drop panic on the floor
