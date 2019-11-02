@@ -1,4 +1,4 @@
-package simple_logger
+package logger
 
 import (
 	"bytes"
@@ -484,14 +484,14 @@ func ExampleLogger_Logf() {
 	l := exampleLogger(WARN)
 	l.Logf("%s %d", "test", 1)
 	// Output:
-	// WARN test 1
+	// test 1
 }
 
 func ExampleLogger_Log() {
 	l := exampleLogger(ERROR)
 	l.Log("test")
 	// Output:
-	// ERROR test
+	// test
 }
 
 func ExampleLogger_Prefix() {
@@ -505,7 +505,6 @@ func ExampleLogger_Prefix() {
 func exampleLogger(level uint) *Logger {
 	// A logger for use with Example tests, sending output to stdout, also
 	// with no flags which could potentially change the output across test runs
-	l := NewLogger(os.Stdout, "", 0)
-	l.SetLevel(level)
+	l := NewLogger(os.Stdout, "", 0).WithLevel(level)
 	return l
 }

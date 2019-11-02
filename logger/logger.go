@@ -1,4 +1,4 @@
-package simple_logger
+package logger
 
 import (
 	"fmt"
@@ -23,7 +23,16 @@ const (
 	DEBUG
 )
 
-var levels = []string{"NONE", "FATAL", "ERROR", "WARN", "INFO", "DEBUG"}
+var levels [DEBUG + 1]string
+
+func init() {
+	levels[NONE] = "NONE"
+	levels[FATAL] = "FATAL"
+	levels[ERROR] = "ERROR"
+	levels[WARN] = "WARN"
+	levels[INFO] = "INFO"
+	levels[DEBUG] = "DEBUG"
+}
 
 // Logger is a logging object which provides leveled logging using the stdlib log.Logger
 type Logger struct {
@@ -36,8 +45,7 @@ var StdLogger = NewLogger(os.Stderr, "", log.LstdFlags)
 
 // NewLogger provides a way to customize a logger object by specifying the output io.Writer, a desired prefix (empty string
 // for no prefix, and any flags which will control the output decorations (see the constants in the stdlib log package).
-// The returned logger is set to the INFO level by default, but can be modified by updating the Level field, or calling
-// ParseLevel()/SetLevel().
+// The returned logger is set to the INFO level by default, but can be modified by calling ParseLevel()/SetLevel().
 func NewLogger(out io.Writer, prefix string, flag int) *Logger {
 	l := &Logger{Level: INFO, Logger: log.New(out, prefix, flag)}
 	return l
@@ -57,6 +65,12 @@ func ParseLevel(level string) (uint, error) {
 // SetLevel will set the logger to only output messages at the provided level or higher
 func (l *Logger) SetLevel(level uint) {
 	l.Level = level
+}
+
+// WithLevel is a fluent method to set the level for a logger
+func (l *Logger) WithLevel(level uint) *Logger {
+	l.Level = level
+	return l
 }
 
 // Fatalf logs a formatted message string at the FATAL level, and exits (via os.Exit)
@@ -139,7 +153,6 @@ func (l *Logger) Debugln(v ...interface{}) {
 
 // Panicf outputs a formatted message string, and calls panic(), bypassing log level checking
 func (l *Logger) Panicf(format string, v ...interface{}) {
-	// Output directly for all Panic*() calls, avoid Level checking
 	msg := fmt.Sprintf(format, v...)
 	l.Output(3, fmt.Sprintf("PANIC %s", msg))
 	panic(msg)
@@ -175,17 +188,11 @@ func (l *Logger) Println(v ...interface{}) {
 	l.Output(3, fmt.Sprintln(v...))
 }
 
-// Logf outputs a formatted message string, at the configured log level.  Used for compatibility with other logging interfaces.
-// Will require wrapping the call to this method in a conditional if you wish to control what is output
+// Logf outputs an un-leveled message.  Used for compatibility with other logging interfaces.
+// Will require wrapping the call to this method with a conditional if you wish to control what is output
 //
-// Example:
-//   l.SetLevel(DEBUG)
-//   l.Logf("%s", "message")
-//
-// will write "DEBUG message" out, and if the level was set to "WARN" it would write "WARN message".
 // To control the output on the caller side (debugging), it would be necessary to do something similar to:
 //
-//  l.SetLevel(ERROR)
 //  if l.Level >= DEBUG {
 //    l.Logf("%s", "message")
 //  }
@@ -193,13 +200,13 @@ func (l *Logger) Println(v ...interface{}) {
 // so that the l.Logf() call only fires if the logging level is at least DEBUG, but any other messages are written at the
 // "ERROR" level
 func (l *Logger) Logf(format string, v ...interface{}) {
-	l.writeLogf(l.Level, format, v...)
+	l.Printf(format, v...)
 }
 
-// Log outputs the message, at the configured log level.  Used for compatibility with other logging interfaces.
+// Log outputs an un-leveled message.  Used for compatibility with other logging interfaces.
 // See documentation for Logf() about controlling log output on the caller side
 func (l *Logger) Log(v ...interface{}) {
-	l.writeLogln(l.Level, v...)
+	l.Print(v...)
 }
 
 func (l *Logger) writeLogf(level uint, format string, v ...interface{}) error {
