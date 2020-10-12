@@ -8,54 +8,28 @@ import (
 	"strings"
 )
 
-const (
-	// NONE is the log level to indicate no log output should be generated
-	NONE = iota
-	// FATAL log level will only output messages at the FATAL level, this is the highest log level
-	FATAL
-	// ERROR log level outputs messages at the ERROR level or higher
-	ERROR
-	// WARN log level outputs messages at the WARN level or higher
-	WARN
-	// INFO log level outputs messages at the INFO level or higher
-	INFO
-	// DEBUG log level outputs messages at the DEBUG level or higher, this is the lowest log level
-	DEBUG
-)
-
-var levels [DEBUG + 1]string
-
-func init() {
-	levels[NONE] = "NONE"
-	levels[FATAL] = "FATAL"
-	levels[ERROR] = "ERROR"
-	levels[WARN] = "WARN"
-	levels[INFO] = "INFO"
-	levels[DEBUG] = "DEBUG"
-}
-
-// Logger is a logging object which provides leveled logging using the stdlib log.Logger
-type Logger struct {
-	Level uint
+type logger struct {
 	*log.Logger
+	level uint8
 }
 
 // StdLogger is a shortcut to get a logger which logs to stderr with the stdlib standard logging flags (log.LstdFlags)
 var StdLogger = NewLogger(os.Stderr, "", log.LstdFlags)
 
-// NewLogger provides a way to customize a logger object by specifying the output io.Writer, a desired prefix (empty string
-// for no prefix, and any flags which will control the output decorations (see the constants in the stdlib log package).
-// The returned logger is set to the INFO level by default, but can be modified by calling ParseLevel()/SetLevel().
-func NewLogger(out io.Writer, prefix string, flag int) *Logger {
-	l := &Logger{Level: INFO, Logger: log.New(out, prefix, flag)}
-	return l
+// NewLogger returns a new logger object which will write output to the provided io.Writer.  The 'out', 'prefix' and
+// 'flag' arguments are exactly the same as the arguments for the New() method in the golang log package.  This logger
+// inherits from the golang log.Logger, so all methods of that type are available as well, including Print* and Panic*.
+//
+// The logger is initially created with the level set to INFO, but can be modified by calling ParseLevel()/SetLevel().
+func NewLogger(out io.Writer, prefix string, flag int) *logger {
+	return &logger{level: INFO, Logger: log.New(out, prefix, flag)}
 }
 
 // ParseLevel accepts a string as a log level name, and returns the corresponding int value for the level
-func ParseLevel(level string) (uint, error) {
+func ParseLevel(level string) (uint8, error) {
 	for i, v := range levels {
 		if strings.EqualFold(v, level) {
-			return uint(i), nil
+			return uint8(i), nil
 		}
 	}
 
@@ -63,166 +37,107 @@ func ParseLevel(level string) (uint, error) {
 }
 
 // SetLevel will set the logger to only output messages at the provided level or higher
-func (l *Logger) SetLevel(level uint) {
-	l.Level = level
+func (l *logger) SetLevel(level uint8) {
+	l.level = level
 }
 
-// WithLevel is a fluent method to set the level for a logger
-func (l *Logger) WithLevel(level uint) *Logger {
-	l.Level = level
+// WithLevel is a fluent method for setting the level for a logger
+func (l *logger) WithLevel(level uint8) *logger {
+	l.level = level
 	return l
 }
 
-// Fatalf logs a formatted message string at the FATAL level, and exits (via os.Exit)
-func (l *Logger) Fatalf(format string, v ...interface{}) {
-	l.writeLogf(FATAL, format, v...)
-	os.Exit(1)
-}
-
-// Fatal logs a message string at the FATAL level, and exits (via os.Exit)
-func (l *Logger) Fatal(v ...interface{}) {
-	l.writeLogln(FATAL, v...)
-	os.Exit(1)
-}
-
-// Fatalln logs a message string at the FATAL level, and exits (via os.Exit)
-func (l *Logger) Fatalln(v ...interface{}) {
-	l.writeLogln(FATAL, v...)
-	os.Exit(1)
-}
-
-// Errorf logs a formatted message string at the ERROR level
-func (l *Logger) Errorf(format string, v ...interface{}) {
-	l.writeLogf(ERROR, format, v...)
-}
-
-// Error logs a message string at the ERROR level
-func (l *Logger) Error(v ...interface{}) {
-	l.writeLogln(ERROR, v...)
-}
-
-// Errorln logs a message string at the ERROR level
-func (l *Logger) Errorln(v ...interface{}) {
-	l.writeLogln(ERROR, v...)
-}
-
-// Warnf logs a formatted message string at the WARN level
-func (l *Logger) Warnf(format string, v ...interface{}) {
-	l.writeLogf(WARN, format, v...)
-}
-
-// Warn logs a message string at the WARN level
-func (l *Logger) Warn(v ...interface{}) {
-	l.writeLogln(WARN, v...)
-}
-
-// Warnln logs a message string at the WARN level
-func (l *Logger) Warnln(v ...interface{}) {
-	l.writeLogln(WARN, v...)
-}
-
-// Infof logs a formatted message string at the INFO level
-func (l *Logger) Infof(format string, v ...interface{}) {
-	l.writeLogf(INFO, format, v...)
-}
-
-// Info logs a message string at the INFO level
-func (l *Logger) Info(v ...interface{}) {
-	l.writeLogln(INFO, v...)
-}
-
-// Infoln logs a message string at the INFO level
-func (l *Logger) Infoln(v ...interface{}) {
-	l.writeLogln(INFO, v...)
+// Debug logs a message string at the DEBUG level
+func (l *logger) Debug(v ...interface{}) {
+	l.Debugln(v...)
 }
 
 // Debugf logs a formatted message string at the DEBUG level
-func (l *Logger) Debugf(format string, v ...interface{}) {
-	l.writeLogf(DEBUG, format, v...)
-}
-
-// Debug logs a message string at the DEBUG level
-func (l *Logger) Debug(v ...interface{}) {
-	l.writeLogln(DEBUG, v...)
+func (l *logger) Debugf(format string, v ...interface{}) {
+	l.writeLog(DEBUG, format, v...)
 }
 
 // Debugln logs a message string at the DEBUG level
-func (l *Logger) Debugln(v ...interface{}) {
-	l.writeLogln(DEBUG, v...)
+func (l *logger) Debugln(v ...interface{}) {
+	l.Debugf(fmt.Sprint(v...))
 }
 
-// Panicf outputs a formatted message string, and calls panic(), bypassing log level checking
-func (l *Logger) Panicf(format string, v ...interface{}) {
-	msg := fmt.Sprintf(format, v...)
-	l.Output(3, fmt.Sprintf("PANIC %s", msg))
-	panic(msg)
+// Info logs a message string at the INFO level
+func (l *logger) Info(v ...interface{}) {
+	l.Infoln(v...)
 }
 
-// Panic outputs the message, and calls panic(), bypassing log level checking
-func (l *Logger) Panic(v ...interface{}) {
-	msg := fmt.Sprint(v...)
-	l.Output(3, fmt.Sprintf("PANIC %s", msg))
-	panic(msg)
+// Infof logs a formatted message string at the INFO level
+func (l *logger) Infof(format string, v ...interface{}) {
+	l.writeLog(INFO, format, v...)
 }
 
-// Panicln outputs the message, and calls panic(), bypassing log level checking
-func (l *Logger) Panicln(v ...interface{}) {
-	msg := fmt.Sprintln(v...)
-	l.Output(3, fmt.Sprintf("PANIC %s", msg))
-	panic(msg)
+// Infoln logs a message string at the INFO level
+func (l *logger) Infoln(v ...interface{}) {
+	l.Infof(fmt.Sprint(v...))
 }
 
-// Printf outputs a formatted message string, bypassing log level checking
-func (l *Logger) Printf(format string, v ...interface{}) {
-	// Print*() logs an "un-leveled" message
-	l.Output(3, fmt.Sprintf(format, v...))
+// Warning logs a message string at the WARN level
+func (l *logger) Warning(v ...interface{}) {
+	l.Warningln(v...)
 }
 
-// Print outputs the message, bypassing log level checking
-func (l *Logger) Print(v ...interface{}) {
-	l.Output(3, fmt.Sprintln(v...))
+// Warningf logs a formatted message string at the WARN level
+func (l *logger) Warningf(format string, v ...interface{}) {
+	l.writeLog(WARN, format, v...)
 }
 
-// Println outputs the message, bypassing log level checking
-func (l *Logger) Println(v ...interface{}) {
-	l.Output(3, fmt.Sprintln(v...))
+// Warningln logs a message string at the WARN level
+func (l *logger) Warningln(v ...interface{}) {
+	l.Warningf(fmt.Sprint(v...))
 }
 
-// Logf outputs an un-leveled message.  Used for compatibility with other logging interfaces.
-// Will require wrapping the call to this method with a conditional if you wish to control what is output
-//
-// To control the output on the caller side (debugging), it would be necessary to do something similar to:
-//
-//  if l.Level >= DEBUG {
-//    l.Logf("%s", "message")
-//  }
-//
-// so that the l.Logf() call only fires if the logging level is at least DEBUG, but any other messages are written at the
-// "ERROR" level
-func (l *Logger) Logf(format string, v ...interface{}) {
-	l.Printf(format, v...)
+// Error logs a message string at the ERROR level
+func (l *logger) Error(v ...interface{}) {
+	l.Errorln(v...)
 }
 
-// Log outputs an un-leveled message.  Used for compatibility with other logging interfaces.
-// See documentation for Logf() about controlling log output on the caller side
-func (l *Logger) Log(v ...interface{}) {
+// Errorf logs a formatted message string at the ERROR level
+func (l *logger) Errorf(format string, v ...interface{}) {
+	l.writeLog(ERROR, format, v...)
+}
+
+// Errorln logs a message string at the ERROR level
+func (l *logger) Errorln(v ...interface{}) {
+	l.Errorf(fmt.Sprint(v...))
+}
+
+// Fatal logs a message string at the FATAL level, and exits (via os.Exit)
+// It overrides the golang standard library log.Fatal() method and prepends "FATAL" to the log message
+// for consistency with other leveled logging methods in this package.
+func (l *logger) Fatal(v ...interface{}) {
+	l.Fatalln(v...)
+}
+
+// Fatalf logs a formatted message string at the FATAL level, and exits (via os.Exit)
+// It overrides the golang standard library log.Fatal() method and prepends "FATAL" to the log message
+// for consistency with other leveled logging methods in this package.
+func (l *logger) Fatalf(format string, v ...interface{}) {
+	l.Logger.Fatalf(levels[FATAL]+" "+format, v...)
+}
+
+// Fatalln logs a message string at the FATAL level, and exits (via os.Exit)
+// It overrides the golang standard library log.Fatal() method and prepends "FATAL" to the log message
+// for consistency with other leveled logging methods in this package.
+func (l *logger) Fatalln(v ...interface{}) {
+	l.Fatalf(fmt.Sprint(v...))
+}
+
+// Log is an implementation of the AwsLogger interface which will call the standard library log.Print() method
+// to write an unleveled log message (meaning it will not be filtered by the log level checking logic, and is
+// always written to the output writer)
+func (l *logger) Log(v ...interface{}) {
 	l.Print(v...)
 }
 
-func (l *Logger) writeLogf(level uint, format string, v ...interface{}) error {
-	if l.Level >= level {
-		q := []interface{}{levels[level]}
-		q = append(q, v...)
-		return l.Output(3, fmt.Sprintf("%s "+format, q...))
+func (l *logger) writeLog(lvl uint8, format string, v ...interface{}) {
+	if l.level >= lvl {
+		prefix := levels[lvl]
+		_ = l.Output(3, prefix+" "+fmt.Sprintf(format, v...))
 	}
-	return nil
-}
-
-func (l *Logger) writeLogln(level uint, v ...interface{}) error {
-	if l.Level >= level {
-		q := []interface{}{levels[level]}
-		q = append(q, v...)
-		return l.Output(3, fmt.Sprintln(q...))
-	}
-	return nil
 }
