@@ -11,6 +11,7 @@ import (
 type logger struct {
 	*log.Logger
 	level uint8
+	test  bool
 }
 
 // StdLogger is a shortcut to get a logger which logs to stderr with the stdlib standard logging flags (log.LstdFlags)
@@ -49,7 +50,7 @@ func (l *logger) WithLevel(level uint8) *logger {
 
 // Debug logs a message string at the DEBUG level
 func (l *logger) Debug(v ...interface{}) {
-	l.Debugln(v...)
+	l.writeLog(DEBUG, fmt.Sprint(v...))
 }
 
 // Debugf logs a formatted message string at the DEBUG level
@@ -59,12 +60,12 @@ func (l *logger) Debugf(format string, v ...interface{}) {
 
 // Debugln logs a message string at the DEBUG level
 func (l *logger) Debugln(v ...interface{}) {
-	l.Debugf(fmt.Sprint(v...))
+	l.writeLog(DEBUG, fmt.Sprintln(v...))
 }
 
 // Info logs a message string at the INFO level
 func (l *logger) Info(v ...interface{}) {
-	l.Infoln(v...)
+	l.writeLog(INFO, fmt.Sprint(v...))
 }
 
 // Infof logs a formatted message string at the INFO level
@@ -74,12 +75,12 @@ func (l *logger) Infof(format string, v ...interface{}) {
 
 // Infoln logs a message string at the INFO level
 func (l *logger) Infoln(v ...interface{}) {
-	l.Infof(fmt.Sprint(v...))
+	l.writeLog(INFO, fmt.Sprintln(v...))
 }
 
 // Warning logs a message string at the WARN level
 func (l *logger) Warning(v ...interface{}) {
-	l.Warningln(v...)
+	l.writeLog(WARN, fmt.Sprint(v...))
 }
 
 // Warningf logs a formatted message string at the WARN level
@@ -89,12 +90,12 @@ func (l *logger) Warningf(format string, v ...interface{}) {
 
 // Warningln logs a message string at the WARN level
 func (l *logger) Warningln(v ...interface{}) {
-	l.Warningf(fmt.Sprint(v...))
+	l.writeLog(WARN, fmt.Sprintln(v...))
 }
 
 // Error logs a message string at the ERROR level
 func (l *logger) Error(v ...interface{}) {
-	l.Errorln(v...)
+	l.writeLog(ERROR, fmt.Sprint(v...))
 }
 
 // Errorf logs a formatted message string at the ERROR level
@@ -104,35 +105,46 @@ func (l *logger) Errorf(format string, v ...interface{}) {
 
 // Errorln logs a message string at the ERROR level
 func (l *logger) Errorln(v ...interface{}) {
-	l.Errorf(fmt.Sprint(v...))
+	l.writeLog(ERROR, fmt.Sprintln(v...))
 }
 
 // Fatal logs a message string at the FATAL level, and exits (via os.Exit)
 // It overrides the golang standard library log.Fatal() method and prepends "FATAL" to the log message
 // for consistency with other leveled logging methods in this package.
 func (l *logger) Fatal(v ...interface{}) {
-	l.Fatalln(v...)
+	l.writeLog(FATAL, fmt.Sprint(v...))
+
+	if !l.test {
+		os.Exit(1)
+	}
 }
 
 // Fatalf logs a formatted message string at the FATAL level, and exits (via os.Exit)
 // It overrides the golang standard library log.Fatal() method and prepends "FATAL" to the log message
 // for consistency with other leveled logging methods in this package.
 func (l *logger) Fatalf(format string, v ...interface{}) {
-	l.Logger.Fatalf(levels[FATAL]+" "+format, v...)
+	l.writeLog(FATAL, format, v...)
+
+	if !l.test {
+		os.Exit(1)
+	}
 }
 
 // Fatalln logs a message string at the FATAL level, and exits (via os.Exit)
 // It overrides the golang standard library log.Fatal() method and prepends "FATAL" to the log message
 // for consistency with other leveled logging methods in this package.
 func (l *logger) Fatalln(v ...interface{}) {
-	l.Fatalf(fmt.Sprint(v...))
+	l.writeLog(FATAL, fmt.Sprint(v...))
+
+	if !l.test {
+		os.Exit(1)
+	}
 }
 
-// Log is an implementation of the AwsLogger interface which will call the standard library log.Print() method
-// to write an unleveled log message (meaning it will not be filtered by the log level checking logic, and is
-// always written to the output writer)
+// Log is an implementation of the AwsLogger interface which will write an unleveled log message (meaning it will not
+// be filtered by the log level checking logic, and is always written to the output writer)
 func (l *logger) Log(v ...interface{}) {
-	l.Print(v...)
+	_ = l.Output(2, fmt.Sprint(v...))
 }
 
 func (l *logger) writeLog(lvl uint8, format string, v ...interface{}) {

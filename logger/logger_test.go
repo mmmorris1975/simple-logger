@@ -62,7 +62,6 @@ func TestLogger_WithLevel(t *testing.T) {
 	}
 }
 
-// No testing of Fatal*() logging, since it calls os.Exit in stdlib log.Fatal*()
 func TestLogger_Panic(t *testing.T) {
 	defer func() {
 		if x := recover(); x == nil {
@@ -79,14 +78,70 @@ func Example_logger_Debug_on() {
 	// DEBUG debug log message
 }
 
+func Example_logger_Debugln_on() {
+	newLogger(DEBUG).Debugln("debug log message")
+	// Output:
+	// DEBUG debug log message
+}
+
+func Example_logger_Debugf_on() {
+	newLogger(DEBUG).Debugf("%s %s %s", "debug", "log", "message")
+	// Output:
+	// DEBUG debug log message
+}
+
 func Example_logger_Debug_off() {
 	newLogger(INFO).Debug("debug log message")
 	// Output:
 	//
 }
 
+func Example_logger_Fatal_on() {
+	l := newLogger(FATAL)
+	l.test = true
+	l.Fatal("fatal log message")
+	// Output:
+	// FATAL fatal log message
+}
+
+func Example_logger_Fatalln_on() {
+	l := newLogger(FATAL)
+	l.test = true
+	l.Fatalln("fatal log message")
+	// Output:
+	// FATAL fatal log message
+}
+
+func Example_logger_Fatalf_on() {
+	l := newLogger(FATAL)
+	l.test = true
+	l.Fatalf("%s %s %s", "fatal", "log", "message")
+	// Output:
+	// FATAL fatal log message
+}
+
+func Example_logger_Fatal_off() {
+	l := newLogger(NONE)
+	l.test = true
+	l.Fatal("fatal log message")
+	// Output:
+	//
+}
+
 func Example_logger_Error_on() {
 	newLogger(ERROR).Error("error log message")
+	// Output:
+	// ERROR error log message
+}
+
+func Example_logger_Errorln_on() {
+	newLogger(ERROR).Errorln("error log message")
+	// Output:
+	// ERROR error log message
+}
+
+func Example_logger_Errorf_on() {
+	newLogger(ERROR).Errorf("%s %s %s", "error", "log", "message")
 	// Output:
 	// ERROR error log message
 }
@@ -103,6 +158,18 @@ func Example_logger_Info_on() {
 	// INFO info log message
 }
 
+func Example_logger_Infoln_on() {
+	newLogger(INFO).Infoln("info log message")
+	// Output:
+	// INFO info log message
+}
+
+func Example_logger_Infof_on() {
+	newLogger(INFO).Infof("%s %s %s", "info", "log", "message")
+	// Output:
+	// INFO info log message
+}
+
 func Example_logger_Info_off() {
 	newLogger(FATAL).Info("info log message")
 	// Output:
@@ -111,6 +178,18 @@ func Example_logger_Info_off() {
 
 func Example_logger_Warning_on() {
 	newLogger(WARN).Warning("warning log message")
+	// Output:
+	// WARN warning log message
+}
+
+func Example_logger_Warningln_on() {
+	newLogger(WARN).Warningln("warning log message")
+	// Output:
+	// WARN warning log message
+}
+
+func Example_logger_Warningf_on() {
+	newLogger(WARN).Warningf("%s %s %s", "warning", "log", "message")
 	// Output:
 	// WARN warning log message
 }
